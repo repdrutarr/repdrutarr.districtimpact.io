@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cape Ann District — Investment Dashboard</title>
+<meta name="description" content="Public dashboard of state investments in Gloucester, Rockport, Manchester-by-the-Sea, and Essex, Massachusetts.">
+<style>
+  :root{
+    --navy:#0f2a4a; --navy-2:#1b3e66; --gold:#b8912e; --gold-lt:#f3e8c8;
+    --bg:#f4f5f7; --card:#ffffff; --ink:#1c2430; --muted:#5b6672; --line:#d7dce2; --ok:#1e7a3c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px}
+  body{font-family:Georgia,"Times New Roman",serif;background:var(--bg);color:var(--ink);line-height:1.45}
+  input,select{font-family:"Segoe UI",system-ui,Arial,sans-serif;font-size:.95rem}
+  h1,h2,h3,h4{font-family:Georgia,serif;color:var(--navy)}
+
+  .site-header{background:var(--navy);color:#fff;padding:18px 20px;border-bottom:4px solid var(--gold)}
+  .site-header .inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .seal{width:54px;height:54px;border-radius:50%;background:var(--gold-lt);color:var(--navy);
+    display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:.7rem;
+    border:3px double var(--gold);text-align:center;line-height:1.1;flex:0 0 auto}
+  .site-header h1{color:#fff;font-size:1.35rem;letter-spacing:.02em}
+  .site-header p{color:#cfd8e4;font-size:.85rem;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+
+  main{max-width:1100px;margin:0 auto 40px;padding:0 14px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px;margin-top:16px}
+  .section-title{border-bottom:2px solid var(--gold);padding-bottom:6px;margin-bottom:10px;display:flex;
+    justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px}
+  .hint{font-size:.82rem;color:var(--muted);font-family:"Segoe UI",system-ui,Arial,sans-serif}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:12px 0 4px}
+  .stat{background:linear-gradient(180deg,#fff,#f6f8fa);border:1px solid var(--line);border-top:3px solid var(--navy);
+    border-radius:6px;padding:12px 14px}
+  .stat .label{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    font-family:"Segoe UI",system-ui,Arial,sans-serif}
+  .stat .value{font-size:1.4rem;font-weight:bold;color:var(--navy);margin-top:2px}
+
+  table{width:100%;border-collapse:collapse;font-family:"Segoe UI",system-ui,Arial,sans-serif;font-size:.88rem}
+  th{background:var(--navy);color:#fff;text-align:left;padding:8px 10px;font-weight:600;white-space:nowrap}
+  td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:nth-child(even){background:#f7f9fb}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;margin:10px 0}
+  .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .totrow td{font-weight:bold;background:#eef2f6;border-top:2px solid var(--navy)}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+
+  .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;
+    background:#f2f5f8;border:1px solid var(--line);border-radius:6px;padding:12px;margin:12px 0}
+  .filters label{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--muted);margin-bottom:3px;font-family:"Segoe UI",system-ui,Arial,sans-serif;font-weight:600}
+  .filters select,.filters input{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:4px;background:#fff}
+  .empty{padding:24px;text-align:center;color:var(--muted);font-style:italic}
+
+  .error-box{max-width:1100px;margin:20px auto;padding:16px;background:#f7dede;border:1px solid #d99;
+    border-left:5px solid #a33;border-radius:4px;font-family:"Segoe UI",system-ui,Arial,sans-serif;font-size:.92rem}
+  .error-box code{background:#fff;padding:1px 5px;border-radius:3px}
+
+  footer{max-width:1100px;margin:0 auto 30px;padding:0 14px;text-align:center}
+  footer p{font-size:.8rem;color:var(--muted);font-family:"Segoe UI",system-ui,Arial,sans-serif}
+
+  @media print{
+    body{background:#fff}
+    .filters,.no-print{display:none !important}
+    section{border:none;padding:0}
+    th{background:#e8ebef !important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{margin:16mm}
+  }
+  @media (max-width:600px){
+    .site-header h1{font-size:1.1rem}
+    section{padding:12px}
+    th,td{padding:6px}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <div class="seal">CAPE<br>ANN</div>
+    <div>
+      <h1>Cape Ann District — Investment Dashboard</h1>
+      <p>Gloucester &middot; Rockport &middot; Manchester-by-the-Sea &middot; Essex &mdash; Commonwealth of Massachusetts</p>
+    </div>
+  </div>
+</header>
+
+<div id="errorBox" class="error-box" style="display:none"></div>
+
+<main id="content" style="display:none">
+  <section>
+    <div class="section-title"><h2>District Overview</h2>
+      <span class="hint" id="updatedNote"></span></div>
+    <div class="stat-grid" id="statGrid"></div>
+  </section>
+
+  <section>
+    <div class="section-title"><h2>Totals</h2></div>
+    <div class="grid2">
+      <div><h3>By Town</h3><div class="table-wrap"><table id="tblTown"></table></div></div>
+      <div><h3>By Category</h3><div class="table-wrap"><table id="tblCat"></table></div></div>
+    </div>
+    <h3>By Fiscal Year</h3>
+    <div class="table-wrap"><table id="tblFY"></table></div>
+  </section>
+
+  <section>
+    <div class="section-title"><h2>All Investments</h2>
+      <span class="hint" id="invCount"></span></div>
+    <div class="filters no-print">
+      <div><label>Search</label><input type="search" id="fSearch" placeholder="Search…"></div>
+      <div><label>Town</label><select id="fTown"></select></div>
+      <div><label>Category</label><select id="fCat"></select></div>
+      <div><label>Fiscal Year</label><select id="fFY"></select></div>
+      <div><label>Sort by</label><select id="fSort">
+        <option value="date-desc">Date announced (newest)</option>
+        <option value="date-asc">Date announced (oldest)</option>
+        <option value="amount-desc">Amount (high–low)</option>
+        <option value="amount-asc">Amount (low–high)</option>
+        <option value="town">Town A–Z</option>
+        <option value="item">Item A–Z</option>
+      </select></div>
+    </div>
+    <div class="table-wrap"><table id="tblInv"></table></div>
+  </section>
+</main>
+
+<footer>
+  <p id="footerText">Investment data for the towns of Gloucester, Rockport, Manchester-by-the-Sea, and Essex.
+  Figures reflect announced state and federal investments and are updated periodically.</p>
+</footer>
+
+<script>
+"use strict";
+var DATA_URL = "district-database.json";
+var data = null;
+
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function money(n){
+  var v = Number(n);
+  if(isNaN(v)) v = 0;
+  return v.toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
+}
+function fmtDate(iso){
+  if(!iso) return "—";
+  var p = String(iso).split("-");
+  if(p.length !== 3) return iso;
+  var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+  return d.toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"});
+}
+function migrate(arr){
+  (arr || []).forEach(function(it){
+    if((it.item == null || it.item === "") && it.program != null) it.item = it.program;
+    delete it.program;
+    delete it.status;
+    delete it.notes; /* internal notes are never displayed publicly */
+  });
+  return arr || [];
+}
+
+function fillSelect(sel, opts, allLabel){
+  var prev = sel.value;
+  var html = '<option value="">' + esc(allLabel) + '</option>';
+  opts.forEach(function(o){ html += '<option value="' + esc(o) + '">' + esc(o) + '</option>'; });
+  sel.innerHTML = html;
+  if(prev && opts.indexOf(prev) !== -1) sel.value = prev;
+}
+function distinct(key){
+  var set = {};
+  data.investments.forEach(function(it){ if(it[key]) set[it[key]] = true; });
+  return Object.keys(set).sort();
+}
+function townOrder(){
+  return (data.towns && data.towns.length) ? data.towns : distinct("town");
+}
+
+function filteredItems(){
+  var q = ($("fSearch").value || "").toLowerCase().trim();
+  var town = $("fTown").value, cat = $("fCat").value, fy = $("fFY").value, sort = $("fSort").value;
+  var items = data.investments.filter(function(it){
+    if(town && it.town !== town) return false;
+    if(cat && it.category !== cat) return false;
+    if(fy && it.fiscalYear !== fy) return false;
+    if(q){
+      var hay = [it.town,it.category,it.item,it.fiscalYear,it.description,it.source,
+                 String(it.amount||"")].join(" ").toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  items.sort(function(a,b){
+    switch(sort){
+      case "date-asc":   return String(a.dateAnnounced||"").localeCompare(String(b.dateAnnounced||""));
+      case "amount-desc":return (Number(b.amount)||0) - (Number(a.amount)||0);
+      case "amount-asc": return (Number(a.amount)||0) - (Number(b.amount)||0);
+      case "town":       return String(a.town).localeCompare(String(b.town)) || String(a.item).localeCompare(String(b.item));
+      case "item":       return String(a.item).localeCompare(String(b.item));
+      default:           return String(b.dateAnnounced||"").localeCompare(String(a.dateAnnounced||""));
+    }
+  });
+  return items;
+}
+
+function groupTotals(items, key){
+  var map = {};
+  items.forEach(function(it){
+    var k = it[key] || "—";
+    if(!map[k]) map[k] = {total:0, count:0};
+    map[k].total += (Number(it.amount)||0);
+    map[k].count += 1;
+  });
+  return map;
+}
+function totalsTable(map, keyLabel, orderList){
+  var keys = Object.keys(map);
+  if(orderList){
+    keys.sort(function(a,b){
+      var ia = orderList.indexOf(a), ib = orderList.indexOf(b);
+      if(ia === -1) ia = 999; if(ib === -1) ib = 999;
+      return ia - ib || a.localeCompare(b);
+    });
+  } else { keys.sort(); }
+  var grand = 0, grandN = 0;
+  keys.forEach(function(k){ grand += map[k].total; grandN += map[k].count; });
+  var rows = keys.map(function(k){
+    var pct = grand > 0 ? (map[k].total / grand * 100).toFixed(1) + "%" : "—";
+    return "<tr><td>" + esc(k) + '</td><td class="num">' + map[k].count + '</td><td class="num">' +
+      money(map[k].total) + '</td><td class="num">' + pct + "</td></tr>";
+  }).join("");
+  if(!keys.length) rows = '<tr><td colspan="4" class="empty">No data.</td></tr>';
+  return "<thead><tr><th>" + esc(keyLabel) + '</th><th class="num">Items</th><th class="num">Total</th>' +
+    '<th class="num">Share</th></tr></thead><tbody>' + rows + "</tbody>" +
+    '<tfoot><tr class="totrow"><td>All</td><td class="num">' + grandN + '</td><td class="num">' +
+    money(grand) + '</td><td class="num">100%</td></tr></tfoot>';
+}
+
+function renderOverview(){
+  var items = data.investments;
+  var total = items.reduce(function(s,it){ return s + (Number(it.amount)||0); }, 0);
+  var towns = Object.keys(groupTotals(items,"town")).length;
+  var fys = Object.keys(groupTotals(items,"fiscalYear")).filter(function(k){ return k !== "—"; }).length;
+  $("statGrid").innerHTML =
+    '<div class="stat"><div class="label">Total Invested</div><div class="value">' + money(total) + "</div></div>" +
+    '<div class="stat"><div class="label">Investment Items</div><div class="value">' + items.length + "</div></div>" +
+    '<div class="stat"><div class="label">Towns / Areas</div><div class="value">' + towns + "</div></div>" +
+    '<div class="stat"><div class="label">Fiscal Years</div><div class="value">' + fys + "</div></div>";
+  $("tblTown").innerHTML = totalsTable(groupTotals(items,"town"), "Town", townOrder());
+  $("tblCat").innerHTML = totalsTable(groupTotals(items,"category"), "Category", null);
+  $("tblFY").innerHTML = totalsTable(groupTotals(items,"fiscalYear"), "Fiscal Year", null);
+}
+
+function renderTable(){
+  var items = filteredItems();
+  $("invCount").textContent = items.length + " of " + data.investments.length + " items shown";
+  var t = $("tblInv");
+  if(!items.length){
+    t.innerHTML = '<tbody><tr><td class="empty">No investments match the current filters.</td></tr></tbody>';
+    return;
+  }
+  var rows = items.map(function(it){
+    return "<tr>" +
+      "<td>" + esc(it.town) + "</td>" +
+      "<td>" + esc(it.category) + "</td>" +
+      "<td><strong>" + esc(it.item) + "</strong>" +
+        (it.description ? '<br><span class="hint">' + esc(it.description) + "</span>" : "") + "</td>" +
+      '<td class="num">' + money(it.amount) + "</td>" +
+      "<td>" + esc(it.fiscalYear || "—") + "</td>" +
+      "<td>" + fmtDate(it.dateAnnounced) + "</td>" +
+      "<td>" + esc(it.source || "") + "</td></tr>";
+  }).join("");
+  var total = items.reduce(function(s,it){ return s + (Number(it.amount)||0); }, 0);
+  t.innerHTML = "<thead><tr><th>Town</th><th>Category</th><th>Item</th><th>Amount</th><th>FY</th>" +
+    "<th>Announced</th><th>Source</th></tr></thead>" +
+    "<tbody>" + rows + "</tbody>" +
+    '<tfoot><tr class="totrow"><td colspan="3">Total (shown)</td><td class="num">' + money(total) +
+    '</td><td colspan="3"></td></tr></tfoot>';
+}
+
+function renderAll(){
+  renderOverview();
+  fillSelect($("fTown"), townOrder().filter(function(t){
+    return data.investments.some(function(it){ return it.town === t; });
+  }), "All towns");
+  fillSelect($("fCat"), distinct("category"), "All categories");
+  fillSelect($("fFY"), distinct("fiscalYear"), "All fiscal years");
+  renderTable();
+}
+
+function showError(html){
+  var box = $("errorBox");
+  box.innerHTML = html;
+  box.style.display = "block";
+}
+
+function init(){
+  fetch(DATA_URL, {cache: "no-store"}).then(function(resp){
+    if(!resp.ok) throw new Error("HTTP " + resp.status);
+    var lastMod = resp.headers.get("last-modified");
+    return resp.json().then(function(j){ return {json: j, lastMod: lastMod}; });
+  }).then(function(r){
+    if(!r.json || !Array.isArray(r.json.investments)) throw new Error("not a valid dashboard database");
+    data = r.json;
+    data.investments = migrate(data.investments);
+    if(r.lastMod){
+      var d = new Date(r.lastMod);
+      if(!isNaN(d.getTime()))
+        $("updatedNote").textContent = "Data last updated " +
+          d.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+    }
+    $("content").style.display = "block";
+    renderAll();
+    ["fSearch","fTown","fCat","fFY","fSort"].forEach(function(id){
+      $(id).addEventListener("input", renderTable);
+    });
+  }).catch(function(e){
+    if(location.protocol === "file:"){
+      showError("<strong>This page needs to be viewed from a website, not opened directly from a folder.</strong><br>" +
+        "Browsers block pages opened from disk (<code>file://</code>) from reading the data file. Upload this file " +
+        "together with <code>district-database.json</code> to your web host (Netlify, GitHub Pages, Cloudflare " +
+        "Pages, or your office website), then visit the published address.");
+    } else {
+      showError("<strong>Could not load the dashboard data.</strong><br>Make sure a file named " +
+        "<code>district-database.json</code> is published in the same folder as this page. " +
+        "(Technical detail: " + esc(e.message) + ")");
+    }
+  });
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

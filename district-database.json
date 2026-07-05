@@ -1,0 +1,50 @@
+{
+  "investments": [
+    {
+      "id": "mr8diq8i-0f31xn",
+      "town": "Gloucester",
+      "category": "Education",
+      "program": "O'Maley Courtyard Renovation",
+      "amount": 20000,
+      "fiscalYear": "FY2027",
+      "dateAnnounced": "2026-07-05",
+      "description": "For planning and design of the O'Maley Innovation Middle School courtyard renovation",
+      "source": "FY2027 Budget",
+      "notes": "",
+      "sample": false
+    },
+    {
+      "id": "mr8dmd4n-eqiumd",
+      "town": "Rockport",
+      "category": "Public Safety",
+      "program": "Rockport Body Cameras",
+      "amount": 20000,
+      "fiscalYear": "FY2027",
+      "dateAnnounced": "2026-07-05",
+      "description": "For body worn cameras for Rockport Police Department",
+      "source": "FY2027 Budget",
+      "notes": "",
+      "sample": false
+    }
+  ],
+  "towns": [
+    "Gloucester",
+    "Rockport",
+    "Manchester-by-the-Sea",
+    "Essex",
+    "Districtwide"
+  ],
+  "categories": [
+    "Education",
+    "Infrastructure",
+    "Health Care",
+    "Human Services",
+    "Local Aid",
+    "Public Safety",
+    "Environment",
+    "Transportation",
+    "Housing",
+    "Other"
+  ],
+  "schedule": null
+}
